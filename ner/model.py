@@ -51,10 +51,6 @@ class NerModel(object):
         self.create_or_load(sess, hparams.out_dir_model)
         while True:
             try:
-                # tf_unary_scores_, tf_transition_params, tf_x = sess.run(
-                #     [self.outputs, self.transition_params, self.input.source])
-                # tf_viterbi_sequence, tf_viterbi_score = tf.contrib.crf.viterbi_decode(tf_unary_scores_[0],
-                #                                                                       tf_transition_params)
                 tf_viterbi_sequence = sess.run(self.viterbi_sequence)[0]
 
             except tf.errors.OutOfRangeError:
@@ -81,18 +77,15 @@ class NerModel(object):
         # tgt = tf.Print(self.input.target_input, [self.input.target_input], message="tgt=", summarize=1000)
         source = self.input.source
         tgt = self.input.target_input
-        # 得到当前batch的长度（如果长度不足的会被padding填充）
-        # max_sequence_in_batch = self.iterator.source_sequence_length
-        # max_sequence_in_batch = tf.reduce_max(max_sequence_in_batch)
-        # max_sequence_in_batch = tf.to_int32(max_sequence_in_batch)
 
         # x: [batch_size, time_step, embedding_size], float32
         self.x = tf.nn.embedding_lookup(self.embedding, source)
         # y: [batch_size, time_step]
         self.y = tgt
 
-        cell_forward = tf.contrib.rnn.BasicLSTMCell(hparams.num_units, forget_bias=hparams.forget_bias)
-        cell_backward = tf.contrib.rnn.BasicLSTMCell(hparams.num_units, forget_bias=hparams.forget_bias)
+        cell_forward = self._single_cell(hparams)
+        cell_backward = self._single_cell(hparams)
+
         # time_major 可以适应输入维度。
         outputs, bi_state = tf.nn.bidirectional_dynamic_rnn(cell_forward, cell_backward, self.x,
                                                             sequence_length=self.input.source_sequence_length,
@@ -160,3 +153,9 @@ class NerModel(object):
                     tf.summary.scalar("accuracy", self.accuracy),
                     tf.summary.scalar("train_loss", self.loss),
                 ])
+
+    def _single_cell(self, hparams):
+        cell = tf.contrib.rnn.BasicLSTMCell(hparams.num_units, forget_bias=hparams.forget_bias)
+        if hparams.dropout > 0.0:
+            cell = tf.contrib.rnn.DropoutWrapper(cell=cell, input_keep_prob=(1.0 - hparams.dropout))
+        return cell

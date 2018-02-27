@@ -29,9 +29,6 @@ def get_iterator(src_file, tgt_file, buffer_size, random_seed, num_threads, src_
             tf.string_split([src]).values, tf.string_split([tgt]).values),
         num_parallel_calls=num_threads)
 
-    # src_tgt_dataset = src_tgt_dataset.filter(
-    #     lambda src, tgt: tf.logical_and(tf.size(src) > 0, tf.size(tgt) > 0))
-
     if src_max_len:
         src_tgt_dataset = src_tgt_dataset.map(
             lambda src, tgt: (src[:src_max_len], tgt),
@@ -271,5 +268,4 @@ def f1_score(y, y_, epsilon=1e-6, positive=None, negative=None):
 
     precision = tf.divide(tp, tf.add(tp, fp))
     recall = tf.divide(tp, tf.add(tp, fn))
-    # return (2 * (precision * recall)) / (precision + recall)
     return tf.divide(tf.multiply(2, tf.multiply(precision, recall)), tf.add(precision, recall))

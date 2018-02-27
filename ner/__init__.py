@@ -24,7 +24,7 @@ def create_hparams():
         buffer_size=200,
         random_seed=None,
         num_threads=2,
-        dropout=0.8,
+        dropout=0.2,
         forget_bias=0.8,
         batch_size=64,
         learning_rate=0.1,

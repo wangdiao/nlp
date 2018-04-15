@@ -207,9 +207,9 @@ def build_word_index(src_file, word_vocab_file, c_vocab_file, tgt_vocab_file):
 
 def generate_wcd(src_file):
     with open(src_file, 'r', encoding="UTF-8") as f, open(src_file + ".wi", 'w', encoding="UTF-8") as wif, open(
-            src_file + ".wj", 'w', encoding="UTF-8") as wjf, open(
-        src_file + ".ci", 'w', encoding="UTF-8") as cif, open(src_file + ".cj", 'w', encoding="UTF-8") as cjf, open(
-        src_file + ".deprel", 'w', encoding="UTF-8") as deprelf:
+            src_file + ".wj", 'w', encoding="UTF-8") as wjf, open(src_file + ".ci", 'w', encoding="UTF-8") as cif, open(
+            src_file + ".cj", 'w', encoding="UTF-8") as cjf, open(src_file + ".deprel", 'w',
+                                                                  encoding="UTF-8") as deprelf:
         seq = []
         for line in f:
             line = line.strip()

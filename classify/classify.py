@@ -11,7 +11,7 @@ FLAGS = None
 
 
 def add_arguments(parser):
-    parser.add_argument('--action', type=str)
+    parser.add_argument('--action', type=str, default="train")
     parser.add_argument('--out_dir', type=str, default='model/classify')
 
 
@@ -40,7 +40,7 @@ def run_main(argv):
             input, placeholder = get_predict_iterator(src_vocab_table)
             model = ClassifyModel(hparams, input, embedding, batch_size=1, mode=tf.contrib.learn.ModeKeys.INFER)
             model.create_or_load(session, hparams.out_dir_model)
-            tag = model.predict(session, feed_dict={
+            tag = model.infer(session, feed_dict={
                 placeholder: ["明天 北京 的 天气 怎么样 ？"]})
             print(tag)
 

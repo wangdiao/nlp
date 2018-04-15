@@ -91,7 +91,7 @@ class Model(object):
         self.session.close()
 
     def predict(self, sentense):
-        return self.model.predict(self.session, feed_dict={
+        return self.model.infer(self.session, feed_dict={
             self.placeholder: [sentense]})
 
     def train_online(self, sentenses, labels, batch_size, num_train_steps):

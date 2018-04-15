@@ -55,7 +55,7 @@ class ClassifyModel(object):
             print("save train model step=%d path=%s" % (current_step, hparams.out_dir_model))
             summary_writer.add_summary(step_summary, current_step)
 
-    def predict(self, sess, feed_dict=None):
+    def infer(self, sess, feed_dict=None):
         sess.run(self.input.initializer, feed_dict=feed_dict)
         # 获取原文本的iterator
         tf_tag = sess.run([self.tag])

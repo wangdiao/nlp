@@ -236,36 +236,36 @@ def not_equal_float(x, y, dtype=tf.float32):
     return tf.subtract(1, tf.cast(tf.equal(x, y), dtype))
 
 
-def f1_score(y, y_, epsilon=1e-6, positive=None, negative=None):
+def f1_score(y, y_, epsilon=1e-6, class_num=2, positive=1):
     '''
     fn：False Negative,被判定为负样本，但事实上是正样本。
     fp：False Positive,被判定为正样本，但事实上是负样本。
     tn：True Negative,被判定为负样本，事实上也是负样本。
     tp：True Positive,被判定为正样本，事实上也是正样本。
+    正元组数(Positive, P)：样本中实际的正元组数。P = tp+fn
+    负元组数(Negative, N)：样本中实际的负元组数。
+    P’：被分类器分为正元组的样本数。P'=tp+fp
+    N’：被分类器分为负元组的样本数。
     precesion：查准率，正确的正样本个数占被判断为正样本结果的比例。 precision = tp / (tp + fp)
     recall：查全率，正确的正样本个数占所有正样本的比例。 recall = tp / (tp + fn)
     f1_score = (2 * (precision * recall)) / (precision + recall)
     :return:
     '''
-    if positive is None and negative is None:
-        negative = 0
-    if positive is not None:
-        fn = equal_float(not_equal_float(y_, positive, dtype=tf.int32),
-                         equal_float(y, positive, dtype=tf.int32)) + epsilon
-        fp = equal_float(equal_float(y_, positive, dtype=tf.int32),
-                         not_equal_float(y, positive, dtype=tf.int32)) + epsilon
-        tn = equal_float(not_equal_float(y_, positive, dtype=tf.int32),
-                         not_equal_float(y, positive, dtype=tf.int32)) + epsilon
-        tp = equal_float(equal_float(y_, positive, dtype=tf.int32), equal_float(y, positive, dtype=tf.int32)) + epsilon
+    if class_num == 2:
+        if positive == 0:
+            positive = 1
+            y = tf.add(y, 1)
+            y_ = tf.add(y_, 1)
+        p = tf.reduce_sum(equal_float(y, positive)) + epsilon
+        p_ = tf.reduce_sum(equal_float(y_, positive)) + epsilon
+        tp = tf.reduce_sum(
+            equal_float(tf.multiply(y_, equal_float(y_, y, dtype=tf.int32)), positive)) + epsilon
+        precision = tf.divide(tp, p_)
+        recall = tf.divide(tp, p)
+        f1 = tf.divide(tf.multiply(2.0, tf.multiply(precision, recall)), tf.add(precision, recall))
+        return f1
     else:
-        fn = equal_float(equal_float(y_, negative, dtype=tf.int32),
-                         not_equal_float(y, negative, dtype=tf.int32)) + epsilon
-        fp = equal_float(not_equal_float(y_, negative, dtype=tf.int32),
-                         equal_float(y, negative, dtype=tf.int32)) + epsilon
-        tn = equal_float(equal_float(y_, negative, dtype=tf.int32), equal_float(y, negative, dtype=tf.int32)) + epsilon
-        tp = equal_float(not_equal_float(y_, negative, dtype=tf.int32),
-                         not_equal_float(y, negative, dtype=tf.int32)) + epsilon
-
-    precision = tf.divide(tp, tf.add(tp, fp))
-    recall = tf.divide(tp, tf.add(tp, fn))
-    return tf.divide(tf.multiply(2, tf.multiply(precision, recall)), tf.add(precision, recall))
+        f1_all = []
+        for i in range(class_num):
+            f1_all.append(f1_score(y, y_, epsilon, positive=i))
+        return tf.reduce_mean(tf.stack(f1_all))
